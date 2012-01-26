@@ -1,4 +1,5 @@
 lib_managed
+\.idea_modules
 \.idea
 hs_err_pid6636.log
 project/build/target
