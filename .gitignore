@@ -1,0 +1,11 @@
+lib_managed
+\.idea
+hs_err_pid6636.log
+project/build/target
+project/boot
+target
+.*\.db$
+.*\.swp$
+.*\.bak$
+.*\.orig$
+.*\.DS_Store$
