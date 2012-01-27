@@ -2,10 +2,12 @@ package code
 package snippet 
 
 import net.liftweb.util._
+import net.liftweb.common.Logger
 import Helpers._
 import net.liftweb.http._
+import js.JsCmds
 
-class MyWizard {
+class MyWizard extends Logger{
 
   /**
    * These variables keep the current
@@ -31,7 +33,7 @@ class MyWizard {
    * first name values
    */
   def firstScreen ={
-    "#name" #> SHtml.text(firstName, firstName = _) &
+    "#name"       #> JsCmds.FocusOnLoad(SHtml.text(firstName, firstName = _)) &
     "type=submit" #> SHtml.submit(
       "Next",() => {
         S.redirectTo("/second",() => {
@@ -53,7 +55,7 @@ class MyWizard {
 
     "#name" #> NameVar.is &
     "#name" #> NameVar.is &
-    "#lastname *" #> SHtml.text(lastName, lastName = _) &
+    "#lastname *" #> JsCmds.FocusOnLoad(SHtml.text(lastName, lastName = _)) &
     "@back" #> SHtml.button("Back",() => S.redirectTo(Whence.is)) &
     "@next" #> SHtml.submit("Next", () => {
           S.redirectTo("/third",() => {
@@ -76,9 +78,9 @@ class MyWizard {
 
     "#name" #> NameVar.is &
     "#lastname *" #> LastNameVar.is &
-    "#age *"        #> SHtml.text(age.toString , s => asInt(s).map(age = _)) &
-    "@back" #> SHtml.button("Back",() => S.redirectTo(Whence.is)) &
-    "@next" #> SHtml.submit("Next",() => {
+    "#age *"      #> JsCmds.FocusOnLoad(SHtml.text(age.toString , s => asInt(s).map(age = _))) &
+    "@back"       #> SHtml.button("Back",() => S.redirectTo(Whence.is)) &
+    "@next"       #> SHtml.submit("Next",() => {
           S.redirectTo("/final",() => {
             NameVar.set(firstName)
             LastNameVar.set(lastName)
@@ -91,13 +93,18 @@ class MyWizard {
   }
 
   /**
-   * This would be a confirmation page. But we just include
-   * a back button
+   * This would be a confirmation page.
+   * This shows how to use ajaxInvoke (thanks to
+   * Torsten Uhlmann for the example!
    */
   def finalScreen ={
-    "#name *"       #> NameVar.is &
-    "#lastname *"   #> LastNameVar.is &
-    "#age *"        #> AgeVar.is &
-    "@back" #> SHtml.button("Back",() => S.redirectTo(Whence.is))
+    "#name *"           #> NameVar.is &
+    "#lastname *"       #> LastNameVar.is &
+    "#age *"            #> AgeVar.is &
+    "@finish [onclick]" #> SHtml.ajaxInvoke (() => {
+      info("Data confirmed!")
+      JsCmds.Alert("We saved your \nName: %s\nLast name: %s\nAge: %s".format(NameVar.is, LastNameVar.is,  AgeVar.is)) &
+      JsCmds.JsHideId("finish")
+    })
   }
 }

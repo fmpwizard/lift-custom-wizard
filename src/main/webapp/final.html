@@ -7,11 +7,13 @@
   <body class="lift:content_id=main">
     <div id="main" class="lift:surround?with=default;at=content">
       <h2>Welcome to your project!</h2>
-      <div class="lift:MyWizard.finalScreen?form=post">
-        First Name: <span id="name"></span> <br>
-        Last Name: <span id="lastname"></span> <br>
-        Age: <span id="age"></span> <br>
-        <input type="reset" value="Submit" name="back">
+      <form class="lift:form.ajax">
+        <div class="lift:MyWizard.finalScreen">
+          First Name: <span id="name"></span> <br>
+          Last Name: <span id="lastname"></span> <br>
+          Age: <span id="age"></span> <br>
+          <input type="submit" value="Submit" name="finish" id="finish">
+        </form>
       </div>
     </div>
   </body>
