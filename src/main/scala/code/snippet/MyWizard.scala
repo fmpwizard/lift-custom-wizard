@@ -47,26 +47,26 @@ class MyWizard extends Logger{
   /**
    * Second screen, note how we assign the values of some RequestVars
    * to some variables, (So they are available on the
-   * S.redirect closure
+   * S.redirectTo closure
    */
-  def secondScreen ={
-    firstName= NameVar.is
-    whence= S.uriAndQueryString openOr ("/")
+    def secondScreen ={
+      firstName= NameVar.is
+      whence= S.uriAndQueryString openOr ("/")
 
-    "#name" #> NameVar.is &
-    "#name" #> NameVar.is &
-    "#lastname *" #> JsCmds.FocusOnLoad(SHtml.text(lastName, lastName = _)) &
-    "@back" #> SHtml.button("Back",() => S.redirectTo(Whence.is)) &
-    "@next" #> SHtml.submit("Next", () => {
-          S.redirectTo("/third",() => {
-            NameVar.set(firstName)
-            LastNameVar.set(lastName)
-            Whence.set(whence)
-          }
-        )
-      }
-    )
-  }
+      "#name" #> NameVar.is &
+      "#name" #> NameVar.is &
+      "#lastname *" #> JsCmds.FocusOnLoad(SHtml.text(lastName, lastName = _)) &
+      "@back" #> SHtml.button("Back",() => S.redirectTo(Whence.is)) &
+      "@next" #> SHtml.submit("Next", () => {
+            S.redirectTo("/third",() => {
+              NameVar.set(firstName)
+              LastNameVar.set(lastName)
+              Whence.set(whence)
+            }
+          )
+        }
+      )
+    }
 
   /**
    * Same as the second screen
