@@ -7,103 +7,95 @@ import Helpers._
 import net.liftweb.http._
 import js.JsCmds
 
-class MyWizard extends Logger{
+class MyWizard extends StatefulSnippet with Logger{
+
+  def dispatch ={
+    case "firstScreen" => firstScreen
+    case "secondScreen" => secondScreen
+    case "thirdScreen" => thirdScreen
+    case "finalScreen" => finalScreen
+  }
 
   /**
    * These variables keep the current
    * values of the submitted form
+   * Because we are using StateFulSnippet, they maintain their values
+   * after a page reload.
    */
   private var firstName = ""
   private var lastName= ""
   private var age= 0
-  private var whence= S.uriAndQueryString.openOr("/")
+  private var currentUrl= ""
+
 
   /**
-   * These objects pass values to the
-   * next screen
+   * Take a snapshot of our FirstRender RequestVar
+   * S.uri will return the current url, and on first page load, it is like:
+   * http://host.com/primero
+   * but after the redirect, because we use StatefulSnippet, it will be like:
+   * http://host.com/primero?FAWE233445fff=
+   * which tells lift to keep track of the variables in this snippet.
    */
-  object Whence extends RequestVar("/")
-  object NameVar extends RequestVar("")
-  object LastNameVar extends RequestVar("")
-  object AgeVar extends RequestVar(0)
+  def firstRender_? ={
+    val urlParam= S.uriAndQueryString openOr(S.uri)
+    if (S.uri == urlParam ) {
+      redirectTo("/first")
+    }
+  }
 
+
+
+  firstRender_?
 
   /**
-   * First screen. Note how we pass the referer and
-   * first name values
+   * First screen.
+   * Note that we do not use S.redirectTo, we use the StatefulSnippet.redirectTo method,
+   * which goes ahead and helps maintain the state across pages.
    */
   def firstScreen ={
     "#name"       #> JsCmds.FocusOnLoad(SHtml.text(firstName, firstName = _)) &
-    "type=submit" #> SHtml.submit(
-      "Next",() => {
-        S.redirectTo("/second",() => {
-          NameVar.set(firstName)
-          Whence.set(whence)
-        })
-      }
-    )
+    "type=submit" #> SHtml.submit("Next",() => redirectTo("/second"))
   }
 
   /**
-   * Second screen, note how we assign the values of some RequestVars
-   * to some variables, (So they are available on the
-   * S.redirectTo closure
+   * Second screen, note how we store the query String in a val, that we pass to the Back button.
+   * This is so that when going back, the values entered on the previous screen are preserved.
    */
-    def secondScreen ={
-      firstName= NameVar.is
-      whence= S.uriAndQueryString openOr ("/")
-
-      "#name" #> NameVar.is &
-      "#name" #> NameVar.is &
-      "#lastname *" #> JsCmds.FocusOnLoad(SHtml.text(lastName, lastName = _)) &
-      "@back" #> SHtml.button("Back",() => S.redirectTo(Whence.is)) &
-      "@next" #> SHtml.submit("Next", () => {
-            S.redirectTo("/third",() => {
-              NameVar.set(firstName)
-              LastNameVar.set(lastName)
-              Whence.set(whence)
-            }
-          )
-        }
-      )
-    }
+  def secondScreen ={
+    val currentToken= S.queryString.openOr("")
+    "#name *"     #> firstName &
+    "#lastname *" #> JsCmds.FocusOnLoad(SHtml.text(lastName, lastName = _)) &
+    "@back"       #> SHtml.button("Back", () => S.redirectTo("/first?" + currentToken)) &
+    "@next"       #> SHtml.submit("Next", () => redirectTo("/third"))
+  }
 
   /**
    * Same as the second screen
    */
   def thirdScreen ={
-    firstName= NameVar.is
-    lastName= LastNameVar.is
-    whence= S.uriAndQueryString openOr ("/")
-
-    "#name" #> NameVar.is &
-    "#lastname *" #> LastNameVar.is &
+    val currentToken= S.queryString.openOr("")
+    "#name *"     #> firstName &
+    "#lastname *" #> lastName &
     "#age *"      #> JsCmds.FocusOnLoad(SHtml.text(age.toString , s => asInt(s).map(age = _))) &
-    "@back"       #> SHtml.button("Back",() => S.redirectTo(Whence.is)) &
-    "@next"       #> SHtml.submit("Next",() => {
-          S.redirectTo("/final",() => {
-            NameVar.set(firstName)
-            LastNameVar.set(lastName)
-            AgeVar.set(age)
-            Whence.set(whence)
-          }
-        )
-      }
-    )
+    "@back"       #> SHtml.button("Back",() => S.redirectTo("/second?" + currentToken)) &
+    "@next"       #> SHtml.submit("Next",() => redirectTo("/final"))
   }
 
   /**
    * This would be a confirmation page.
    * This shows how to use ajaxInvoke (thanks to
    * Torsten Uhlmann for the example!
+   * And note how the second log entry shows you how you can manipulate the data submitted
+   * on the server side.
    */
   def finalScreen ={
-    "#name *"           #> NameVar.is &
-    "#lastname *"       #> LastNameVar.is &
-    "#age *"            #> AgeVar.is &
+    "#name *"           #> firstName &
+    "#lastname *"       #> lastName &
+    "#age *"            #> age &
     "@finish [onclick]" #> SHtml.ajaxInvoke (() => {
       info("Data confirmed!")
-      JsCmds.Alert("We saved your \nName: %s\nLast name: %s\nAge: %s".format(NameVar.is, LastNameVar.is,  AgeVar.is)) &
+      info("We got: \nName: %s\nLast name: %s\nAge: %s".format(firstName, lastName, age))
+      JsCmds.Alert("We saved your \nName: %s\nLast name: %s\nAge: %s".format(firstName, lastName, age)) &
       JsCmds.JsHideId("finish")
     })
   }

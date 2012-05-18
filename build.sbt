@@ -7,7 +7,6 @@ scalaVersion := "2.9.1"
 seq(webSettings: _*)
 
 resolvers ++= Seq(
-  "Scala Tools Releases" at "http://scala-tools.org/repo-releases/",
   "Java.net Maven2 Repository" at "http://download.java.net/maven/2/",
   "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
   "Sonatype" at "http://oss.sonatype.org/content/repositories/releases"
